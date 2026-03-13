@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InterviewAI — Voice Mock Interviewer</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 1 — SETUP
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="setupScreen">
+    <nav class="topbar">
+      <div class="logo">Interview<em>AI</em></div>
+      <div class="pill">
+        <span class="dot" id="setupDot"></span>
+        <span id="setupStatus">READY</span>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div>Real<span class="c1">-Time</span></div>
+      <div>AI <span class="c2">Interviewer</span></div>
+    </div>
+
+    <p class="hero-sub">
+      Voice-to-voice mock interviews powered by Gemini AI.<br />
+      HR &amp; Technical rounds with instant scores and corrections.
+    </p>
+
+    <!-- Mic blocked warning -->
+    <div class="mic-banner" id="micBanner">
+      ⚠️ <strong>Microphone access is blocked.</strong><br />
+      Click the 🔒 lock icon in your browser address bar →
+      set <em>Microphone</em> to <strong>Allow</strong> → refresh the page.
+    </div>
+
+    <div class="form-box">
+
+      <div class="field">
+        <label class="label" for="userName">👤 Your Name</label>
+        <input type="text" id="userName" placeholder="e.g. Arjun Sharma" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="projectDetails">🏗️ Key Project / Product Details</label>
+        <input type="text" id="projectDetails" placeholder="e.g. E-commerce API, AI Chatbot, etc." autocomplete="off" />
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label class="label" for="jobRole">💼 Role Applying For</label>
+          <input type="text" id="jobRole" placeholder="e.g. Software Engineer" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label class="label" for="domain">🛠️ Tech Stack / Domain</label>
+          <input type="text" id="domain" placeholder="e.g. React, Node.js" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label class="label" for="expLevel">📊 Experience Level</label>
+          <select id="expLevel">
+            <option value="fresher">Fresher (0–1 yr)</option>
+            <option value="junior">Junior (1–3 yrs)</option>
+            <option value="mid" selected>Mid-Level (3–5 yrs)</option>
+            <option value="senior">Senior (5+ yrs)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="qCount">🎯 Interview Questions</label>
+          <select id="qCount">
+            <option value="3">3 HR + 3 Tech</option>
+            <option value="5" selected>5 HR + 5 Tech</option>
+            <option value="7">7 HR + 7 Tech</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="codeCount">💻 Coding Challenges</label>
+          <select id="codeCount">
+            <option value="0">None</option>
+            <option value="1" selected>1 Challenge</option>
+            <option value="2">2 Challenges</option>
+            <option value="3">3 Challenges</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 15px;">
+        <label class="label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>📄 Enhance with Resume?</span>
+          <input type="checkbox" id="useResume" onchange="toggleResumeInput()" style="width: 20px; height: 20px; cursor: pointer;">
+        </label>
+      </div>
+
+      <div class="field" id="resumeContainer" style="display: none; margin-top: 10px;">
+        <label class="label">📄 Upload PDF Resume</label>
+        <div class="file-input-wrapper" style="position: relative; overflow: hidden; display: inline-block; width: 100%;">
+          <button class="btn-secondary" style="width: 100%; text-align: left; padding: 12px; border: 1px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); color: #fff; border-radius: 8px; cursor: pointer;">
+            📁 <span id="fileNameDisplay">Select Resume (PDF)</span>
+          </button>
+          <input type="file" id="resumeFile" accept=".pdf" onchange="handleFileSelect(this)" 
+            style="position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+        </div>
+      </div>
+
+      <button class="btn-primary" id="startBtn" onclick="startInterview()">
+        🚀 Start Interview
+      </button>
+
+      <p class="setup-note">
+        API key is loaded from <strong>.env</strong> on the server — never sent to the browser.<br />
+        Make sure <code>node server.js</code> is running before clicking Start.
+      </p>
+
+    </div>
+  </div><!-- /setupScreen -->
+
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 2 — INTERVIEW
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="interviewScreen" style="display:none;">
+    <nav class="topbar">
+      <div class="logo">Interview<em>AI</em></div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="pill">
+          <span class="dot" id="intDot"></span>
+          <span id="intStatus">LIVE</span>
+        </div>
+        <button class="btn-danger" onclick="endInterview()">END</button>
+      </div>
+    </nav>
+
+    <!-- Progress strip -->
+    <div class="progress-strip">
+      <span class="round-badge" id="roundBadge">HR ROUND</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <span class="q-counter" id="qCounter">Q 1 / 10</span>
+    </div>
+
+    <!-- AI question panel -->
+    <div class="ai-panel">
+      <div class="ai-header">
+        <div class="ai-avatar" id="aiAvatar">🤖</div>
+        <div class="ai-meta">
+          <small>AI INTERVIEWER</small>
+          <h3>Alex</h3>
+        </div>
+      </div>
+      <div class="ai-text" id="aiText">Getting ready…</div>
+    </div>
+
+    <!-- User answer panel -->
+    <div class="user-panel">
+      <div class="user-header">
+        <span class="panel-label">🎙️ Your Answer</span>
+        <span class="rec-timer" id="recTimer"></span>
+      </div>
+
+      <!-- Live waveform -->
+      <div class="waveform" id="waveform"></div>
+
+      <!-- Live transcript -->
+      <div class="transcript" id="transcript">
+        <span class="placeholder">Your spoken words will appear here in real time…</span>
+      </div>
+
+      <!-- Mic button -->
+      <button class="mic-btn disabled" id="micBtn" onclick="handleMicClick()">
+        <span class="mic-icon" id="micIcon">🎤</span>
+        <span id="micLabel">Waiting for question…</span>
+      </button>
+    </div>
+
+    <!-- Feedback panel (hidden until answer submitted) -->
+    <div class="feedback-panel" id="feedbackPanel" style="display:none;">
+      <div class="feedback-header">
+        <span class="feedback-title">📋 Evaluation</span>
+        <span class="score-chip" id="scoreChip">—</span>
+      </div>
+      <div class="feedback-grid">
+        <div class="fb-card good">
+          <div class="fb-card-title">✅ What was good</div>
+          <p id="fbGood">—</p>
+        </div>
+        <div class="fb-card improve">
+          <div class="fb-card-title">💡 What to improve / Correct answer</div>
+          <p id="fbImprove">—</p>
+        </div>
+      </div>
+      <button class="btn-next" id="nextBtn" onclick="nextQuestion()">
+        Next Question →
+      </button>
+    </div>
+
+  </div><!-- /interviewScreen -->
+
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 2.5 — CODING ROUND
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="codingScreen" style="display:none;">
+    <nav class="topbar">
+      <div class="logo">Interview<em>AI</em></div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="pill">
+          <span class="dot live"></span>
+          <span>CODING ROUND</span>
+        </div>
+        <button class="btn-danger" onclick="endInterview()">END</button>
+      </div>
+    </nav>
+
+    <div class="coding-container">
+      <!-- Left: AI & Problem -->
+      <div class="coding-left">
+        <div class="ai-header">
+          <div class="ai-avatar">🤖</div>
+          <div class="ai-meta">
+            <small>AI INTERVIEWER</small>
+            <h3>Alex</h3>
+          </div>
+        </div>
+        <div class="problem-scroll">
+          <div class="ai-text" id="codingProblem">Generating challenge…</div>
+        </div>
+      </div>
+
+      <!-- Right: Editor -->
+      <div class="coding-right">
+        <div class="editor-header">
+          <span>📝 Solution Editor</span>
+          <span class="lang-tag">JavaScript / Language of Choice</span>
+        </div>
+        <textarea id="codeEditor" placeholder="// Write your code here..." spellcheck="false"></textarea>
+        <div class="editor-footer">
+          <button class="btn-primary" id="submitCodeBtn" onclick="submitCode()">
+            🚀 Submit Solution
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback overlay (shared logic but specific container if needed) -->
+    <div class="feedback-panel" id="codingFeedback" style="display:none;">
+      <div class="feedback-header">
+        <span class="feedback-title">📊 Code Evaluation</span>
+        <span class="score-chip" id="codingScoreChip">—</span>
+      </div>
+      <div class="feedback-grid">
+        <div class="fb-card good">
+          <div class="fb-card-title">✅ Analysis</div>
+          <p id="codingGood">—</p>
+        </div>
+        <div class="fb-card improve">
+          <div class="fb-card-title">💡 Correction / Optimized Code</div>
+          <p id="codingImprove" class="code-font">—</p>
+        </div>
+      </div>
+      <button class="btn-next" onclick="nextQuestion()">
+        Next Round →
+      </button>
+    </div>
+  </div><!-- /codingScreen -->
+
+
+  <!-- ══════════════════════════════════════════
+       SCREEN 3 — RESULTS
+  ══════════════════════════════════════════ -->
+  <div class="screen" id="resultsScreen" style="display:none;">
+    <nav class="topbar">
+      <div class="logo">Interview<em>AI</em></div>
+      <div class="pill"><span class="dot live"></span><span>COMPLETE</span></div>
+    </nav>
+
+    <div class="results-card">
+      <div class="results-title">Interview <span>Complete</span> 🎉</div>
+
+      <div class="overall-score-wrap">
+        <div class="big-score" id="overallScore">—</div>
+        <div class="score-sub-label">overall score / 10</div>
+      </div>
+
+      <div class="round-score-grid">
+        <div class="round-score-box">
+          <span class="label">HR Round</span>
+          <div class="round-score-val accent" id="hrScore">—</div>
+        </div>
+        <div class="round-score-box">
+          <span class="label">Technical Round</span>
+          <div class="round-score-val violet" id="techScore">—</div>
+        </div>
+      </div>
+
+      <div class="verdict-box">
+        <div class="verdict-label">📝 Overall Verdict</div>
+        <p id="verdictText">Analyzing your performance…</p>
+      </div>
+
+      <button class="btn-primary" onclick="restart()">🔄 Start New Interview</button>
+    </div>
+  </div><!-- /resultsScreen -->
+
+
+
+  <!-- App Logic -->
+  <!-- Load order matters: ui.js and speech.js must come before interview.js -->
+  <script src="/js/ui.js"></script>
+  <script src="/js/speech.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/interview.js"></script>
+  <script src="/js/app.js"></script>
+
+</body>
+</html>
