@@ -104,11 +104,11 @@ Return ONLY this JSON array format:
 
 // ── Evaluate one answer ────────────────────────────────
 async function evaluateAnswer(question, round, answer, jobRole, expLevel, domain) {
-    const system = `You are a strict but fair interview evaluator.
+    const system = `You are a strict and accurate interview evaluator. Your job is to grade answers honestly.
 Return ONLY a valid JSON object. No markdown, no explanation.
 Ensure all strings are properly escaped for JSON and correctly terminated.`;
 
-    const user = `Evaluate this interview answer:
+    const user = `Evaluate this interview answer strictly and accurately:
 - Question: "${question}"
 - Round   : ${round === 'hr' ? 'HR / Behavioral' : 'Technical'}
 - Role    : ${jobRole}
@@ -116,10 +116,21 @@ Ensure all strings are properly escaped for JSON and correctly terminated.`;
 - Stack   : ${domain}
 - Answer  : "${answer}"
 
+Scoring rubric (YOU MUST follow this strictly — do NOT default to 5):
+- 1-2: No answer, totally wrong, or completely irrelevant response
+- 3-4: Partially correct but missing key points or very vague
+- 5-6: Acceptable but not impressive; some gaps in knowledge
+- 7-8: Good answer with most key points covered correctly
+- 9-10: Excellent, complete, and accurate answer with clear understanding
+
+If the answer is empty, garbled, or says nothing relevant, score it 1.
+If the answer is correct and complete, score it 8-10.
+Do NOT give 5 as a default. Be discriminating and honest.
+
 Return ONLY this JSON format (no markdown, no extra text):
 {
   "score"  : <integer 1-10>,
-  "good"   : "<1-2 sentences about what was good>",
+  "good"   : "<1-2 sentences about what was good, or 'Nothing notable' if the answer was poor>",
   "improve": "<2-3 sentences: what was wrong/missing + the ideal correct answer>"
 }`;
 
@@ -129,11 +140,11 @@ Return ONLY this JSON format (no markdown, no extra text):
 
 // ── Evaluate code submission ──────────────────────────
 async function evaluateCode(question, code, jobRole, domain) {
-    const system = `You are an expert code reviewer.
+    const system = `You are an expert code reviewer. Grade code submissions honestly and strictly.
 Return ONLY a valid JSON object. No markdown, no explanation.
 Ensure the response is fully closed and strings properly escaped.`;
 
-    const user = `Evaluate this coding solution:
+    const user = `Evaluate this coding solution strictly and accurately:
 - Problem: "${question}"
 - Role   : ${jobRole}
 - Stack  : ${domain}
@@ -141,6 +152,17 @@ Ensure the response is fully closed and strings properly escaped.`;
 \`\`\`
 ${code}
 \`\`\`
+
+Scoring rubric (YOU MUST follow this strictly — do NOT default to 5):
+- 1-2: Empty, completely wrong, or does not compile/run
+- 3-4: Partially correct but has major logical errors or missing core logic
+- 5-6: Roughly correct approach but inefficient, unclean, or has bugs
+- 7-8: Correct solution with minor inefficiencies or style issues
+- 9-10: Optimal, clean, handles edge cases, excellent solution
+
+If the code is empty or placeholder, score it 1.
+If the code correctly solves the problem efficiently, score it 8-10.
+Do NOT give 5 as a default. Be discriminating and honest.
 
 Rules:
 1. Analyze logic, efficiency, and edge cases.
